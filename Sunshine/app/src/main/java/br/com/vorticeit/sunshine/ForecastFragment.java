@@ -1,5 +1,6 @@
 package br.com.vorticeit.sunshine;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.Nullable;
@@ -93,6 +94,10 @@ public class ForecastFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast toast = Toast.makeText(getContext(), mForeCast.getItem(position), Toast.LENGTH_SHORT);
                 toast.show();
+
+                Intent intent = new Intent(getActivity(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT,
+                        mForeCast.getItem(position));
+                startActivity(intent);
             }
         });
 
