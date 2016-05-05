@@ -1,8 +1,10 @@
 package br.com.vorticeit.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -47,6 +49,12 @@ public class ForecastFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -63,11 +71,18 @@ public class ForecastFragment extends Fragment {
 
         int id = item.getItemId();
         if (id == R.id.action_refresh){
-            FetchWeatherTask task = new FetchWeatherTask();
-            task.execute("94043");
+            updateWeather();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void updateWeather(){
+        FetchWeatherTask task = new FetchWeatherTask();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        //task.execute("94043");
+        task.execute(location);
     }
 
     @Override
@@ -75,6 +90,7 @@ public class ForecastFragment extends Fragment {
                              Bundle savedInstanceState) {
         View viewRoot = inflater.inflate(R.layout.fragment_main, container, false);
 
+        /* RETIRANDO DADOS FAKE DE TESTE
         String[] foreCastsArray = {"Today - Sunny - 88/63",
                 "Tomorrow - Foggy - 70/40",
                 "Weds - Cloudy - 72/63",
@@ -83,9 +99,10 @@ public class ForecastFragment extends Fragment {
                 "Sat - HELP TRAPPED IN WEATHERSTATION - 60/51",
                 "Sun - Sunny - 80/68"};
         List<String> weekForecast = new ArrayList<String>(Arrays.asList(foreCastsArray));
+        */
 
-
-        mForeCast = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, weekForecast);
+        mForeCast = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview,
+                new ArrayList<String>());
         ListView listView = (ListView) viewRoot.findViewById(R.id.listview_forecast);
         listView.setAdapter(mForeCast);
 
@@ -289,8 +306,18 @@ public class ForecastFragment extends Fragment {
 
     private String formatHighLows(double high, double low) {
         // For presentation, assume the user doesn't care about tenths of a degree.
-        long roundedHigh = Math.round(high);
-        long roundedLow = Math.round(low);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String temperature = prefs.getString(getString(R.string.pref_temperature_key), getString(R.string.pref_temperature_default));
+
+        long roundedHigh = 0;
+        long roundedLow = 0;
+        if (temperature.equals("Metric")) {
+            roundedHigh = Math.round(high);
+            roundedLow = Math.round(low);
+        }else{
+            roundedHigh = Math.round(high)*10;
+            roundedLow = Math.round(low)*10;
+        }
 
         String highLowStr = roundedHigh + "/" + roundedLow;
         return highLowStr;
